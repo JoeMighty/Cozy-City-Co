@@ -15,6 +15,7 @@ function App() {
   const [hoveredTile, setHoveredTile] = useState(null)
   const [isNight, setIsNight] = useState(false)
   const [cityName, setCityName] = useState(() => localStorage.getItem('cozy-city-name') || 'Cozy City')
+  const [showSplash, setShowSplash] = useState(true)
   
   const isDragging = useRef(false)
   const lastMousePos = useRef({ x: 0, y: 0 })
