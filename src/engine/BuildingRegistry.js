@@ -38,9 +38,9 @@ export const BUILDING_CATEGORIES = {
       { id: 'park', name: 'Small Park', color: '#10b981', type: 'park', emoji: '🌳' },
       { id: 'plaza', name: 'Fountain Plaza', color: '#059669', type: 'park', accessory: 'fountain', emoji: '⛲' },
       { id: 'forest', name: 'Forest', color: '#064e3b', type: 'park', emoji: '🌲' },
-      { id: 'pond', name: 'Pond', color: '#3b82f6', type: 'water', emoji: '💧' },
-      { id: 'lake', name: 'Lake', color: '#2563eb', type: 'water', emoji: '🌊' },
-      { id: 'river', name: 'River', color: '#1d4ed8', type: 'water', emoji: '🛶' }
+      { id: 'pond', name: 'Small Pond', color: '#60a5fa', type: 'water' },
+      { id: 'lake', name: 'Deep Lake', color: '#2563eb', type: 'water' },
+      { id: 'river', name: 'Wide River', color: '#1d4ed8', type: 'water' }
     ]
   },
   INFRASTRUCTURE: {
