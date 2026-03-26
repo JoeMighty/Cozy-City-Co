@@ -327,8 +327,6 @@ export class IsometricGrid {
 
     ctx.restore();
   }
-    ctx.restore();
-  }
 
   drawBackground(ctx, width, height, isNight) {
     if (!isNight) return;
