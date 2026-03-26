@@ -22,7 +22,7 @@ export function NewsTicker({ cityName }) {
     <div className="news-ticker">
       <div className="news-label">LATEST</div>
       <div className="news-content">
-        <span key={index}>{displayText}</span>
+        <span>{displayText}</span>
       </div>
     </div>
   );
