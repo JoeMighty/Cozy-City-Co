@@ -27,4 +27,3 @@ export function NewsTicker({ cityName }) {
     </div>
   );
 }
-破

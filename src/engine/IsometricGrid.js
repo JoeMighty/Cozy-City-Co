@@ -9,7 +9,7 @@ export class IsometricGrid {
     this.data = Array(rows).fill().map(() => Array(cols).fill(null));
     this.activity = new ActivityEngine(this);
   }
-破  // Convert (row, col) to screen (x, y)
+  // Convert (row, col) to screen (x, y)
   // Isometric formula:
   // screenX = (col - row) * (width / 2)
   // screenY = (col + row) * (height / 2)
