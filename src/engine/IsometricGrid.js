@@ -108,43 +108,62 @@ export class IsometricGrid {
     }
 
     // Update and Draw Activity
-    this.activity.update();
-    this.drawActivity(ctx, offsetX, offsetY, zoom);
+    this.activity.update(ctx.canvas.width, ctx.canvas.height);
+    this.drawActivity(ctx, offsetX, offsetY, zoom, isNight);
   }
 
-  drawActivity(ctx, offsetX, offsetY, zoom) {
-    const halfWidth = (this.tileSize * 2 * zoom) / 2;
-    const halfHeight = (this.tileSize * zoom) / 2;
+  drawActivity(ctx, offsetX, offsetY, zoom, isNight) {
+    const hw = (this.tileSize * 2 * zoom) / 2;
+    const hh = (this.tileSize * zoom) / 2;
 
-    // Draw Cars
+    // Draw Cars...
     this.activity.cars.forEach(car => {
       const p1 = this.getScreenCoords(car.row, car.col, offsetX, offsetY, zoom);
       const p2 = this.getScreenCoords(car.targetRow, car.targetCol, offsetX, offsetY, zoom);
       const x = p1.x + (p2.x - p1.x) * car.progress;
       const y = p1.y + (p2.y - p1.y) * car.progress;
-
       ctx.fillStyle = car.color;
       ctx.beginPath();
-      ctx.arc(x, y - 2, 3 * zoom, 0, Math.PI * 2);
+      ctx.arc(x, y + hh, 2 * zoom, 0, Math.PI * 2);
       ctx.fill();
     });
 
-    // Draw Particles
+    // Draw Particles...
     this.activity.particles.forEach(p => {
       ctx.globalAlpha = p.life / 1.5;
       if (p.type === 'text') {
-        ctx.fillStyle = p.color;
-        ctx.font = `bold ${14 * zoom}px sans-serif`;
+        ctx.fillStyle = isNight ? '#fbbf24' : '#1e293b';
+        ctx.font = `bold ${Math.floor(14 * zoom)}px sans-serif`;
         ctx.textAlign = 'center';
         ctx.fillText(p.text, p.x, p.y);
-      } else if (p.type === 'smoke') {
-        ctx.fillStyle = p.color;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size * zoom * (1 + (1 - p.life/2)), 0, Math.PI * 2);
-        ctx.fill();
       }
     });
+
+    // Draw Birds
     ctx.globalAlpha = 1.0;
+    ctx.strokeStyle = isNight ? 'rgba(255, 255, 255, 0.4)' : 'rgba(0, 0, 0, 0.6)';
+    ctx.lineWidth = 1 * zoom;
+    this.activity.birds.forEach(b => {
+      ctx.beginPath();
+      const s = 4 * zoom;
+      const w = Math.sin(b.wingPhase) * s;
+      ctx.moveTo(b.x - s, b.y - w);
+      ctx.lineTo(b.x, b.y);
+      ctx.lineTo(b.x + s, b.y - w);
+      ctx.stroke();
+    });
+
+    // Draw Clouds
+    if (!isNight) {
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+      this.activity.clouds.forEach(c => {
+        ctx.beginPath();
+        ctx.arc(c.x, c.y, c.size * 0.5, 0, Math.PI * 2);
+        ctx.arc(c.x + c.size * 0.3, c.y + 10, c.size * 0.4, 0, Math.PI * 2);
+        ctx.arc(c.x - c.size * 0.3, c.y + 10, c.size * 0.4, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
   }
 
   drawConnectedFeature(ctx, row, col, x, y, hw, hh, type, isNight) {
@@ -206,6 +225,12 @@ export class IsometricGrid {
     ctx.translate(x, y + hh);
     
     const seed = (ctx.currentDrawRow * 13 + ctx.currentDrawCol * 7) % 3;
+
+    // SHADOW
+    ctx.fillStyle = isNight ? 'rgba(0,0,0,0.4)' : 'rgba(0,0,0,0.1)';
+    ctx.beginPath();
+    ctx.ellipse(0, hh, hw * 0.6, hh * 0.4, 0, 0, Math.PI * 2);
+    ctx.fill();
 
     if (type === 'building') {
       const dayColor = data.color;

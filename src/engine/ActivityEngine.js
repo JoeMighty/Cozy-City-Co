@@ -2,44 +2,76 @@ export class ActivityEngine {
   constructor(grid) {
     this.grid = grid;
     this.cars = []; // {row, col, targetRow, targetCol, progress, color}
-    this.particles = []; // {x, y, vx, vy, life, text, color, type}
+    this.particles = []; // {row, col, x, y, vx, vy, life, text, color, type}
+    this.clouds = []; // {x, y, size, speed}
+    this.birds = []; // {x, y, speed, wingPhase}
     this.lastUpdate = Date.now();
+    
+    // Initial clouds
+    for(let i=0; i<5; i++) this.spawnCloud(true);
   }
 
-  update() {
+  update(width, height) {
     const now = Date.now();
     const dt = (now - this.lastUpdate) / 1000;
     this.lastUpdate = now;
 
-    // Update Cars
-    for (let i = this.cars.length - 1; i >= 0; i--) {
-      const car = this.cars[i];
-      car.progress += dt * 1.5; // Speed
+    // Update Cars... (existing)
+    this.cars.forEach((car, i) => {
+      car.progress += dt * 1.5;
       if (car.progress >= 1) {
-        // Move to next tile if possible
         car.row = car.targetRow;
         car.col = car.targetCol;
         car.progress = 0;
         this.findNextRoadTarget(car);
-        if (!car.targetRow && car.targetRow !== 0) {
-          this.cars.splice(i, 1);
-        }
+        if (car.targetRow === null) this.cars.splice(i, 1);
       }
-    }
+    });
 
-    // Update Particles
-    for (let i = this.particles.length - 1; i >= 0; i--) {
-      const p = this.particles[i];
+    // Update Particles... (existing)
+    this.particles.forEach((p, i) => {
       p.x += p.vx * dt;
       p.y += p.vy * dt;
       p.life -= dt;
       if (p.life <= 0) this.particles.splice(i, 1);
-    }
+    });
 
-    // Spawn Cars occasionally
-    if (this.cars.length < 20 && Math.random() < 0.05) {
-      this.spawnCar();
-    }
+    // Update Clouds
+    this.clouds.forEach((c, i) => {
+      c.x += c.speed * dt;
+      if (c.x > width + 200) this.clouds.splice(i, 1);
+    });
+    if (this.clouds.length < 8 && Math.random() < 0.01) this.spawnCloud();
+
+    // Update Birds
+    this.birds.forEach((b, i) => {
+      b.x += b.speed * dt;
+      b.y += Math.sin(Date.now() * 0.005) * 0.5;
+      b.wingPhase = (Date.now() * 0.01) % (Math.PI * 2);
+      if (b.x > width + 100) this.birds.splice(i, 1);
+    });
+    if (this.birds.length < 5 && Math.random() < 0.005) this.spawnBird();
+
+    // Spawn Cars
+    if (this.cars.length < 25 && Math.random() < 0.05) this.spawnCar();
+  }
+
+  spawnCloud(randomX = false) {
+    this.clouds.push({
+      x: randomX ? Math.random() * 2000 : -200,
+      y: Math.random() * 800,
+      size: 100 + Math.random() * 150,
+      speed: 10 + Math.random() * 20
+    });
+  }
+
+  spawnBird() {
+    this.birds.push({
+      x: -50,
+      y: 100 + Math.random() * 500,
+      speed: 50 + Math.random() * 50,
+      wingPhase: 0
+    });
   }
 
   spawnCar() {
