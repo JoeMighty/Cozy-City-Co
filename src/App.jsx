@@ -2,50 +2,61 @@ import { useState, useRef, useEffect } from 'react'
 import { Hammer, Pickaxe, Trees, Droplets, Map as MapIcon, Plus, Minus } from 'lucide-react'
 import { IsometricGrid } from './engine/IsometricGrid'
 import { GuideOverlay } from './components/GuideOverlay'
+import { BUILDING_CATEGORIES, getBuildingById } from './engine/BuildingRegistry'
 import './styles/index.css'
 
 function App() {
   const canvasRef = useRef(null)
   const [activeTool, setActiveTool] = useState('building')
   const [zoom, setZoom] = useState(0.8)
-  const [offset, setOffset] = useState({ x: 0, y: 100 })
+  const [offset, setOffset] = useState({ x: window.innerWidth / 2, y: 100 })
   const [grid, setGrid] = useState(new IsometricGrid(40, 40))
   const [hoveredTile, setHoveredTile] = useState(null)
+  const [isNight, setIsNight] = useState(false)
+  const [cityName, setCityName] = useState(() => localStorage.getItem('cozy-city-name') || 'Cozy City')
   
   const isDragging = useRef(false)
   const lastMousePos = useRef({ x: 0, y: 0 })
 
+  // Initialize City Name persistence
+  useEffect(() => {
+    localStorage.setItem('cozy-city-name', cityName)
+  }, [cityName])
+
+  // Handle Resize
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
 
-    const resize = () => {
+    const handleResize = () => {
       canvas.width = window.innerWidth
       canvas.height = window.innerHeight
-      setOffset(prev => ({ x: canvas.width / 2, y: 100 }))
+      setOffset({ x: canvas.width / 2, y: 100 })
     }
 
-    const render = () => {
-      const ctx = canvas.getContext('2d')
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
-      grid.draw(ctx, offset.x, offset.y, zoom, hoveredTile)
-    }
+    window.addEventListener('resize', handleResize)
+    handleResize()
+    
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
+  // Handle Render Loop
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
 
     let animationFrame;
     const loop = () => {
-      render()
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+      grid.drawBackground(ctx, canvas.width, canvas.height, isNight)
+      grid.draw(ctx, offset.x, offset.y, zoom, hoveredTile, isNight, activeTool)
       animationFrame = requestAnimationFrame(loop)
     }
 
-    window.addEventListener('resize', resize)
-    resize()
     loop()
-    
-    return () => {
-      window.removeEventListener('resize', resize)
-      cancelAnimationFrame(animationFrame)
-    }
-  }, [grid, zoom, offset, hoveredTile])
+    return () => cancelAnimationFrame(animationFrame)
+  }, [grid, zoom, offset, hoveredTile, isNight, activeTool])
 
   const handleMouseDown = (e) => {
     if (e.button === 1 || (e.button === 0 && e.shiftKey)) {
@@ -85,7 +96,7 @@ function App() {
   }
 
   return (
-    <div className="game-container">
+    <div className={`game-container ${isNight ? 'night' : ''}`}>
       <canvas 
         ref={canvasRef} 
         className="game-canvas" 
@@ -99,49 +110,57 @@ function App() {
       
       {/* UI Overlay */}
       <div className="ui-header">
-        <h1>Cozy City Co.</h1>
+        <div className="city-info">
+          <input 
+            type="text" 
+            className="city-name-input" 
+            value={cityName} 
+            onChange={(e) => setCityName(e.target.value)}
+            spellCheck="false"
+          />
+          <div className="header-credits">
+            Created by <a href="https://github.com/JoeMighty" target="_blank" rel="noreferrer">JoeMighty</a>
+          </div>
+        </div>
+        
         <div className="resource-bar">
+          <button className="theme-toggle" onClick={() => setIsNight(!isNight)}>
+            {isNight ? '🌙 Night' : '☀️ Day'}
+          </button>
           <div className="resource"><span>Population:</span> <span>150</span></div>
           <div className="resource"><span>Balance:</span> <span>$ ∞</span></div>
         </div>
       </div>
 
-      <div className="sidebar">
-        <button 
-          className={activeTool === 'road' ? 'active' : ''} 
-          onClick={() => setActiveTool('road')}
-        >
-          <MapIcon size={24} />
-          <span>Roads</span>
-        </button>
-        <button 
-          className={activeTool === 'building' ? 'active' : ''} 
-          onClick={() => setActiveTool('building')}
-        >
-          <Hammer size={24} />
-          <span>Buildings</span>
-        </button>
-        <button 
-          className={activeTool === 'park' ? 'active' : ''} 
-          onClick={() => setActiveTool('park')}
-        >
-          <Trees size={24} />
-          <span>Parks</span>
-        </button>
-        <button 
-          className={activeTool === 'water' ? 'active' : ''} 
-          onClick={() => setActiveTool('water')}
-        >
-          <Droplets size={24} />
-          <span>Water</span>
-        </button>
-        <button 
-          className={activeTool === null ? 'active' : ''} 
-          onClick={() => setActiveTool(null)}
-        >
-          <Pickaxe size={24} />
-          <span>Clear</span>
-        </button>
+
+      <div className="build-menu">
+        <div className="categories">
+          {Object.values(BUILDING_CATEGORIES).map(cat => (
+            <div key={cat.id} className="category-section">
+              <h4>{cat.title}</h4>
+              <div className="items">
+                {cat.items.map(item => (
+                  <button 
+                    key={item.id}
+                    className={activeTool === item.id ? 'active' : ''} 
+                    onClick={() => setActiveTool(item.id)}
+                    title={item.name}
+                  >
+                    <div className="item-preview" style={{ background: item.color }}></div>
+                    <span>{item.name}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+          <button 
+            className={`tool-button ${activeTool === null ? 'active' : ''}`} 
+            onClick={() => setActiveTool(null)}
+          >
+            <Pickaxe size={20} />
+            <span>Clear</span>
+          </button>
+        </div>
       </div>
 
       <div className="zoom-controls">

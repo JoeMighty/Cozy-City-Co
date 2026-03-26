@@ -1,3 +1,5 @@
+import { getBuildingById } from './BuildingRegistry';
+
 export class IsometricGrid {
   constructor(rows, cols) {
     this.rows = rows;
@@ -36,7 +38,7 @@ export class IsometricGrid {
     return { row: Math.floor(row), col: Math.floor(col) };
   }
 
-  draw(ctx, offsetX, offsetY, zoom, hoveredTile = null) {
+  draw(ctx, offsetX, offsetY, zoom, hoveredTile = null, isNight = false, activeTool = null) {
     const halfWidth = (this.tileSize * 2 * zoom) / 2;
     const halfHeight = (this.tileSize * zoom) / 2;
 
@@ -57,22 +59,32 @@ export class IsometricGrid {
 
         // Fill
         const tile = this.data[row][col];
-        if (tile === 'water') {
-          ctx.fillStyle = '#1e40af'; // Blue-800
-        } else if (tile === 'road') {
-          ctx.fillStyle = '#1e293b'; // Slate-900
-        } else if (tile === 'building') {
-          ctx.fillStyle = '#1e293b'; // Dark base for building
-        } else if (tile === 'park') {
-          ctx.fillStyle = '#065f46'; // Emerald-900
+        const ghost = isHovered && activeTool && !tile;
+        const toolData = activeTool ? getBuildingById(activeTool) : null;
+        const tileData = tile ? getBuildingById(tile) : null;
+        
+        const currentData = ghost ? toolData : tileData;
+        const currentType = currentData?.type;
+
+        if (currentType === 'water') {
+          ctx.fillStyle = isNight ? '#1e3a8a' : currentData.color;
+        } else if (currentType === 'road') {
+          ctx.fillStyle = isNight ? '#0f172a' : currentData.color;
+        } else if (currentType === 'building') {
+          ctx.fillStyle = isNight ? '#0f172a' : '#1e293b';
+        } else if (currentType === 'park') {
+          ctx.fillStyle = isNight ? '#064e3b' : currentData.color;
         } else {
-          ctx.fillStyle = isHovered ? 'rgba(255, 255, 255, 0.1)' : 'rgba(30, 41, 59, 0.5)';
+          ctx.fillStyle = isHovered ? 'rgba(255, 255, 255, 0.1)' : (isNight ? 'rgba(15, 23, 42, 0.8)' : 'rgba(30, 41, 59, 0.5)');
         }
+        
+        if (ghost) ctx.globalAlpha = 0.5;
         ctx.fill();
+        ctx.globalAlpha = 1.0;
 
         // Roads/Water connectivity
-        if (tile === 'road' || tile === 'water') {
-          this.drawConnectedFeature(ctx, row, col, x, y, halfWidth, halfHeight, tile);
+        if (currentType === 'road' || currentType === 'water') {
+          this.drawConnectedFeature(ctx, row, col, x, y, halfWidth, halfHeight, currentType, isNight, currentData?.color);
         }
 
         // Stroke
@@ -81,15 +93,19 @@ export class IsometricGrid {
         ctx.stroke();
 
         // Minimalist Geometric "Buildings"
-        if (tile === 'building' || tile === 'park') {
-          this.drawGeometricFeature(ctx, x, y, halfWidth, halfHeight, tile);
+        if (currentType === 'building' || currentType === 'park') {
+          if (ghost) ctx.globalAlpha = 0.5;
+          this.drawGeometricFeature(ctx, x, y, halfWidth, halfHeight, currentType, isNight, currentData);
+          ctx.globalAlpha = 1.0;
         }
       }
     }
   }
 
-  drawConnectedFeature(ctx, row, col, x, y, hw, hh, type) {
-    const color = type === 'road' ? '#475569' : '#3b82f6';
+  drawConnectedFeature(ctx, row, col, x, y, hw, hh, type, isNight) {
+    const color = type === 'road' 
+      ? (isNight ? '#334155' : '#475569') 
+      : (isNight ? '#2563eb' : '#3b82f6');
     ctx.fillStyle = color;
 
     // Check neighbors
@@ -140,18 +156,18 @@ export class IsometricGrid {
     ctx.fill();
   }
 
-  drawGeometricFeature(ctx, x, y, hw, hh, type) {
+  drawGeometricFeature(ctx, x, y, hw, hh, type, isNight, data) {
     ctx.save();
     ctx.translate(x, y + hh);
     
-    // Use a simple hash based on row/col for variety
     const seed = (ctx.currentDrawRow * 13 + ctx.currentDrawCol * 7) % 3;
 
     if (type === 'building') {
-      const colors = ['#fbbf24', '#f59e0b', '#d97706'];
-      ctx.fillStyle = colors[seed];
+      const dayColor = data.color;
+      const nightColors = ['#4338ca', '#3730a3', '#312e81'];
+      ctx.fillStyle = isNight ? nightColors[seed] : dayColor;
       
-      const heightMult = 0.5 + seed * 0.3;
+      const heightMult = data.height || (0.5 + seed * 0.3);
       
       // Cube
       ctx.beginPath();
@@ -162,36 +178,88 @@ export class IsometricGrid {
       ctx.fill();
       
       // Side shading
-      ctx.fillStyle = 'rgba(0,0,0,0.1)';
+      ctx.fillStyle = isNight ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.1)';
       ctx.beginPath();
       ctx.moveTo(0, 0);
       ctx.lineTo(hw * 0.5, -hh * (heightMult * 0.5));
       ctx.lineTo(hw * 0.5, hh * 0.5);
       ctx.lineTo(0, hh);
       ctx.fill();
+
+      // Accessories
+      if (data.accessory === 'cross') {
+        ctx.fillStyle = '#ef4444';
+        ctx.fillRect(-2, -hh * heightMult - 6, 4, 12);
+        ctx.fillRect(-6, -hh * heightMult - 2, 12, 4);
+      } else if (data.accessory === 'neon' && isNight) {
+        ctx.strokeStyle = '#f472b6';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(-hw * 0.2, -hh * heightMult * 0.8, hw * 0.4, hh * 0.4);
+      }
+
+      // Night Lights
+      if (isNight) {
+        ctx.fillStyle = '#fbbf24';
+        const lightLevels = Math.floor(heightMult * 2);
+        for (let i = 0; i < lightLevels; i++) {
+          ctx.beginPath();
+          ctx.arc(seed === 0 ? -2 : 2, -hh * 0.2 - (i * 10), 1.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      // CHARACTER: Draw Emoji
+      if (data.emoji) {
+        ctx.font = `${Math.floor(14 * (zoom + 0.5))}px serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.shadowBlur = 4;
+        ctx.shadowColor = 'rgba(0,0,0,0.5)';
+        ctx.fillText(data.emoji, 0, -hh * heightMult - 15);
+        ctx.shadowBlur = 0;
+      }
     } else if (type === 'park') {
-      const parkColors = ['#34d399', '#10b981', '#059669'];
-      ctx.fillStyle = parkColors[seed];
+      ctx.fillStyle = isNight ? '#064e3b' : data.color;
       
-      if (seed === 0) {
-        // Round Tree
+      const heightMult = 0.5;
+
+      if (data.accessory === 'fountain') {
+        ctx.fillStyle = '#60a5fa';
+        ctx.beginPath();
+        ctx.arc(0, 0, hw * 0.2, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (seed === 0) {
         ctx.beginPath();
         ctx.arc(0, -hh * 0.3, hw * 0.3, 0, Math.PI * 2);
         ctx.fill();
-      } else if (seed === 1) {
-        // Geometric Bush
+      } else {
         ctx.beginPath();
         ctx.moveTo(-hw * 0.3, 0);
         ctx.lineTo(0, -hh * 0.6);
         ctx.lineTo(hw * 0.3, 0);
         ctx.fill();
-      } else {
-        // Multi-tier tree
-        ctx.beginPath();
-        ctx.arc(0, -hh * 0.2, hw * 0.25, 0, Math.PI * 2);
-        ctx.arc(0, -hh * 0.5, hw * 0.15, 0, Math.PI * 2);
-        ctx.fill();
       }
+
+      if (data.emoji) {
+        ctx.font = `${Math.floor(12 * (zoom + 0.5))}px serif`;
+        ctx.textAlign = 'center';
+        ctx.fillText(data.emoji, 0, -hh * heightMult - 10);
+      }
+    }
+    ctx.restore();
+  }
+
+  drawBackground(ctx, width, height, isNight) {
+    if (!isNight) return;
+    
+    ctx.save();
+    ctx.fillStyle = 'white';
+    for (let i = 0; i < 100; i++) {
+      const x = (Math.sin(i * 123.45) * 0.5 + 0.5) * width;
+      const y = (Math.cos(i * 678.90) * 0.5 + 0.5) * height;
+      const size = (Math.sin(i + Date.now() * 0.001) * 0.5 + 0.5) * 1.5;
+      ctx.globalAlpha = Math.random() * 0.5 + 0.2;
+      ctx.fillRect(x, y, size, size);
     }
     ctx.restore();
   }
