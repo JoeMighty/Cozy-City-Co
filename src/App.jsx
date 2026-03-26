@@ -50,9 +50,40 @@ function App() {
     return () => clearInterval(interval)
   }, [incomeRate])
 
-  // Handle Resize... (omitted)
+  // Handle Resize
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
 
-  // Handle Render Loop... (omitted)
+    const handleResize = () => {
+      canvas.width = window.innerWidth
+      canvas.height = window.innerHeight
+      setOffset({ x: window.innerWidth / 2, y: 100 })
+    }
+
+    window.addEventListener('resize', handleResize)
+    handleResize()
+    
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
+  // Handle Render Loop
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
+
+    let animationFrame;
+    const loop = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+      grid.drawBackground(ctx, canvas.width, canvas.height, isNight)
+      grid.draw(ctx, offset.x, offset.y, zoom, hoveredTile, isNight, activeTool)
+      animationFrame = requestAnimationFrame(loop)
+    }
+
+    loop()
+    return () => cancelAnimationFrame(animationFrame)
+  }, [grid, zoom, offset, hoveredTile, isNight, activeTool])
 
   const handleMouseDown = (e) => {
     const rect = canvasRef.current.getBoundingClientRect()
@@ -196,10 +227,12 @@ function App() {
         grid={grid}
       />
 
-      <SplashScreen onComplete={(balance) => {
-        setStats(prev => ({ ...prev, balance }));
-        setShowSplash(false);
-      }} />
+      {showSplash && (
+        <SplashScreen onComplete={(balance) => {
+          setStats(prev => ({ ...prev, balance }));
+          setShowSplash(false);
+        }} />
+      )}
     </div>
   )
 }
