@@ -17,6 +17,35 @@ function App() {
   
   const isDragging = useRef(false)
   const lastMousePos = useRef({ x: 0, y: 0 })
+  const [stats, setStats] = useState({ population: 0, balance: 1000 })
+
+  // Calculate stats based on grid
+  useEffect(() => {
+    let pop = 0
+    let income = 0
+    grid.data.forEach(row => {
+      row.forEach(cell => {
+        if (!cell) return
+        const b = getBuildingById(cell)
+        if (b?.id === 'house') pop += 4
+        if (b?.id === 'villa') pop += 10
+        if (b?.id === 'apartment') pop += 40
+        if (b?.id === 'skyscraper') pop += 150
+        if (b?.type === 'commercial') income += 10
+      })
+    })
+    setStats(prev => ({ 
+      population: pop, 
+      balance: prev.balance + income // Accumulate income
+    }))
+    
+    const interval = setInterval(() => {
+       // Slow income tick
+       setStats(prev => ({ ...prev, balance: prev.balance + (income / 10) }))
+    }, 5000)
+    
+    return () => clearInterval(interval)
+  }, [grid])
 
   // Initialize City Name persistence
   useEffect(() => {
@@ -139,8 +168,8 @@ function App() {
           <button className="theme-toggle" onClick={() => setIsNight(!isNight)}>
             {isNight ? '🌙 Night' : '☀️ Day'}
           </button>
-          <div className="resource"><span>Population:</span> <span>150</span></div>
-          <div className="resource"><span>Balance:</span> <span>$ ∞</span></div>
+          <div className="resource"><span>Population:</span> <span>{Math.floor(stats.population)}</span></div>
+          <div className="resource"><span>Balance:</span> <span>${Math.floor(stats.balance)}</span></div>
         </div>
       </div>
 
@@ -182,7 +211,12 @@ function App() {
         <button onClick={() => setZoom(z => Math.max(z - 0.1, 0.5))}><Minus size={20} /></button>
       </div>
 
-      <GuideOverlay cityName={cityName} setCityName={setCityName} />
+      <GuideOverlay 
+        cityName={cityName} 
+        setCityName={setCityName} 
+        stats={stats}
+        grid={grid}
+      />
     </div>
   )
 }
