@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { Hammer, Pickaxe, Trees, Droplets, Map as MapIcon, Plus, Minus } from 'lucide-react'
 import { IsometricGrid } from './engine/IsometricGrid'
+import { GuideOverlay } from './components/GuideOverlay'
 import './styles/index.css'
 
 function App() {
@@ -147,6 +148,8 @@ function App() {
         <button onClick={() => setZoom(z => Math.min(z + 0.1, 2))}><Plus size={20} /></button>
         <button onClick={() => setZoom(z => Math.max(z - 0.1, 0.5))}><Minus size={20} /></button>
       </div>
+
+      <GuideOverlay />
     </div>
   )
 }

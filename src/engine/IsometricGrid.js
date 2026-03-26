@@ -5,6 +5,19 @@ export class IsometricGrid {
     this.tileSize = 40; // Base tile size
     this.data = Array(rows).fill().map(() => Array(cols).fill(null));
   }
+  // Convert (row, col) to screen (x, y)
+  // Isometric formula:
+  // screenX = (col - row) * (width / 2)
+  // screenY = (col + row) * (height / 2)
+  getScreenCoords(row, col, offsetX, offsetY, zoom) {
+    const halfWidth = (this.tileSize * 2 * zoom) / 2;
+    const halfHeight = (this.tileSize * zoom) / 2;
+    
+    const x = offsetX + (col - row) * halfWidth;
+    const y = offsetY + (col + row) * halfHeight;
+    
+    return { x, y };
+  }
 
   // Convert screen (x, y) to (row, col)
   // Inverse Isometric formula:
