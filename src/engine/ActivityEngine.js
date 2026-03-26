@@ -59,9 +59,9 @@ export class ActivityEngine {
   spawnCloud(randomX = false) {
     this.clouds.push({
       x: randomX ? Math.random() * 2000 : -200,
-      y: Math.random() * 800,
-      size: 100 + Math.random() * 150,
-      speed: 10 + Math.random() * 20
+      y: Math.random() * 600,
+      size: 40 + Math.random() * 80,
+      speed: 5 + Math.random() * 15
     });
   }
 

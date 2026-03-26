@@ -155,7 +155,7 @@ export class IsometricGrid {
 
     // Draw Clouds
     if (!isNight) {
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
       this.activity.clouds.forEach(c => {
         ctx.beginPath();
         ctx.arc(c.x, c.y, c.size * 0.5, 0, Math.PI * 2);
