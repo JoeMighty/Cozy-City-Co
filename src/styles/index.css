@@ -75,9 +75,11 @@ body {
   text-transform: uppercase;
   letter-spacing: 2px;
   background: linear-gradient(to right, #3b82f6, #8b5cf6);
+  background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   width: auto;
+  overflow: visible;
 }
 
 .city-suffix {
@@ -86,6 +88,7 @@ body {
   text-transform: uppercase;
   letter-spacing: 2px;
   background: linear-gradient(to right, #8b5cf6, #c084fc);
+  background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }

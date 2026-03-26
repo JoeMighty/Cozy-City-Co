@@ -118,7 +118,7 @@ function App() {
               value={cityName} 
               onChange={(e) => setCityName(e.target.value)}
               spellCheck="false"
-              style={{ width: `${Math.max(cityName.length * 16, 150)}px` }}
+              style={{ width: `${Math.max(cityName.length * 22, 180)}px` }}
             />
             <span className="city-suffix">Co.</span>
           </div>
