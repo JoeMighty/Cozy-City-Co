@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from 'react'
-import { Hammer, Pickaxe, Trees, Droplets, Map as MapIcon, Plus, Minus } from 'lucide-react'
+import { Hammer, Pickaxe, Trees, Droplets, Map as MapIcon, Plus, Minus, Sun, Moon } from 'lucide-react'
 import { IsometricGrid } from './engine/IsometricGrid'
 import { GuideOverlay } from './components/GuideOverlay'
+import { NewsTicker } from './components/NewsTicker'
 import { BUILDING_CATEGORIES, getBuildingById } from './engine/BuildingRegistry'
 import './styles/index.css'
 
@@ -59,25 +60,33 @@ function App() {
   }, [grid, zoom, offset, hoveredTile, isNight, activeTool])
 
   const handleMouseDown = (e) => {
+    const rect = canvasRef.current.getBoundingClientRect()
+    const mouseX = e.clientX - rect.left
+    const mouseY = e.clientY - rect.top
+
     if (e.button === 1 || (e.button === 0 && e.shiftKey)) {
       isDragging.current = true
       lastMousePos.current = { x: e.clientX, y: e.clientY }
     } else if (e.button === 0) {
       // Place building
-      const { row, col } = grid.getGridCoords(e.clientX, e.clientY, offset.x, offset.y, zoom)
-      grid.place(row, col, activeTool, e.clientX, e.clientY)
+      const { row, col } = grid.getGridCoords(mouseX, mouseY, offset.x, offset.y, zoom)
+      grid.place(row, col, activeTool, mouseX, mouseY)
       setGrid(Object.assign(Object.create(Object.getPrototypeOf(grid)), grid)) // Trigger re-render
     }
   }
 
   const handleMouseMove = (e) => {
+    const rect = canvasRef.current.getBoundingClientRect()
+    const mouseX = e.clientX - rect.left
+    const mouseY = e.clientY - rect.top
+
     if (isDragging.current) {
       const dx = e.clientX - lastMousePos.current.x
       const dy = e.clientY - lastMousePos.current.y
       setOffset(prev => ({ x: prev.x + dx, y: prev.y + dy }))
       lastMousePos.current = { x: e.clientX, y: e.clientY }
     } else {
-      const { row, col } = grid.getGridCoords(e.clientX, e.clientY, offset.x, offset.y, zoom)
+      const { row, col } = grid.getGridCoords(mouseX, mouseY, offset.x, offset.y, zoom)
       if (row >= 0 && row < grid.rows && col >= 0 && col < grid.cols) {
         setHoveredTile({ row, col })
       } else {
