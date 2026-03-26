@@ -254,9 +254,8 @@ export class IsometricGrid {
       ctx.fill();
       
       if (data.emoji) {
-        const bounce = Math.sin(Date.now() * 0.004 + seed) * (6 * zoom);
         ctx.font = `${Math.floor(28 * zoom)}px serif`;
-        ctx.fillText(data.emoji, 0, -5 * zoom + bounce);
+        ctx.fillText(data.emoji, 0, -5 * zoom);
       }
       ctx.restore();
       return;
@@ -349,12 +348,11 @@ export class IsometricGrid {
 
     // Character Emoji (Illustration) - Animated "Breathing" (Drawn last to be on top)
     if (data.emoji) {
-      const bounce = Math.sin(Date.now() * 0.003 + seed) * (3 * zoom);
       ctx.font = `${Math.floor(36 * zoom)}px serif`; 
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillStyle = 'white';
-      ctx.fillText(data.emoji, 0, -h - (24 * zoom) + bounce);
+      ctx.fillText(data.emoji, 0, -h - (24 * zoom));
     }
 
     ctx.restore();
