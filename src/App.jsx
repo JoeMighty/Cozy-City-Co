@@ -65,7 +65,7 @@ function App() {
     } else if (e.button === 0) {
       // Place building
       const { row, col } = grid.getGridCoords(e.clientX, e.clientY, offset.x, offset.y, zoom)
-      grid.place(row, col, activeTool)
+      grid.place(row, col, activeTool, e.clientX, e.clientY)
       setGrid(Object.assign(Object.create(Object.getPrototypeOf(grid)), grid)) // Trigger re-render
     }
   }

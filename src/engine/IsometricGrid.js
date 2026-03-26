@@ -1,4 +1,5 @@
 import { getBuildingById } from './BuildingRegistry';
+import { ActivityEngine } from './ActivityEngine';
 
 export class IsometricGrid {
   constructor(rows, cols) {
@@ -6,8 +7,9 @@ export class IsometricGrid {
     this.cols = cols;
     this.tileSize = 40; // Base tile size
     this.data = Array(rows).fill().map(() => Array(cols).fill(null));
+    this.activity = new ActivityEngine(this);
   }
-  // Convert (row, col) to screen (x, y)
+破  // Convert (row, col) to screen (x, y)
   // Isometric formula:
   // screenX = (col - row) * (width / 2)
   // screenY = (col + row) * (height / 2)
@@ -97,11 +99,50 @@ export class IsometricGrid {
         // Minimalist Geometric "Buildings"
         if (currentType === 'building' || currentType === 'park') {
           if (ghost) ctx.globalAlpha = 0.5;
-          this.drawGeometricFeature(ctx, x, y, halfWidth, halfHeight, currentType, isNight, currentData);
+          this.drawGeometricFeature(ctx, x, y, halfWidth, halfHeight, currentType, isNight, currentData, zoom);
           ctx.globalAlpha = 1.0;
         }
       }
     }
+
+    // Update and Draw Activity
+    this.activity.update();
+    this.drawActivity(ctx, offsetX, offsetY, zoom);
+  }
+
+  drawActivity(ctx, offsetX, offsetY, zoom) {
+    const halfWidth = (this.tileSize * 2 * zoom) / 2;
+    const halfHeight = (this.tileSize * zoom) / 2;
+
+    // Draw Cars
+    this.activity.cars.forEach(car => {
+      const p1 = this.getScreenCoords(car.row, car.col, offsetX, offsetY, zoom);
+      const p2 = this.getScreenCoords(car.targetRow, car.targetCol, offsetX, offsetY, zoom);
+      const x = p1.x + (p2.x - p1.x) * car.progress;
+      const y = p1.y + (p2.y - p1.y) * car.progress;
+
+      ctx.fillStyle = car.color;
+      ctx.beginPath();
+      ctx.arc(x, y - 2, 3 * zoom, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    // Draw Particles
+    this.activity.particles.forEach(p => {
+      ctx.globalAlpha = p.life / 1.5;
+      if (p.type === 'text') {
+        ctx.fillStyle = p.color;
+        ctx.font = `bold ${14 * zoom}px sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.fillText(p.text, p.x, p.y);
+      } else if (p.type === 'smoke') {
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size * zoom * (1 + (1 - p.life/2)), 0, Math.PI * 2);
+        ctx.fill();
+      }
+    });
+    ctx.globalAlpha = 1.0;
   }
 
   drawConnectedFeature(ctx, row, col, x, y, hw, hh, type, isNight) {
@@ -158,7 +199,7 @@ export class IsometricGrid {
     ctx.fill();
   }
 
-  drawGeometricFeature(ctx, x, y, hw, hh, type, isNight, data) {
+  drawGeometricFeature(ctx, x, y, hw, hh, type, isNight, data, zoom) {
     ctx.save();
     ctx.translate(x, y + hh);
     
@@ -266,9 +307,17 @@ export class IsometricGrid {
     ctx.restore();
   }
 
-  place(row, col, type) {
+  place(row, col, tool, screenX, screenY) {
     if (row >= 0 && row < this.rows && col >= 0 && col < this.cols) {
-      this.data[row][col] = type;
+      this.data[row][col] = tool;
+      
+      if (tool) {
+        const item = getBuildingById(tool);
+        let text = "+1";
+        if (item?.type === 'building') text = "+10 Pop";
+        if (item?.type === 'commercial') text = "+$100";
+        this.activity.addTextParticle(screenX, screenY, text);
+      }
     }
   }
 }
