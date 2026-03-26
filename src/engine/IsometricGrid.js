@@ -172,13 +172,18 @@ export class IsometricGrid {
       : (isNight ? '#2563eb' : '#3b82f6');
     ctx.fillStyle = color;
 
-    // Check neighbors
-    const n = row > 0 && this.data[row - 1][col] === type;
-    const s = row < this.rows - 1 && this.data[row + 1][col] === type;
-    const w = col > 0 && this.data[row][col - 1] === type;
-    const e = col < this.cols - 1 && this.data[row][col + 1] === type;
+    if (type === 'water') {
+      // Full tile fill for merging water bodies
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(x + hw, y + hh);
+      ctx.lineTo(x, y + hh * 2);
+      ctx.lineTo(x - hw, y + hh);
+      ctx.fill();
+      return; // No connectors needed for water
+    }
 
-    // Draw central block
+    // Road logic (remains narrow)
     ctx.beginPath();
     ctx.moveTo(x, y + hh * 0.5);
     ctx.lineTo(x + hw * 0.5, y + hh);
@@ -186,11 +191,23 @@ export class IsometricGrid {
     ctx.lineTo(x - hw * 0.5, y + hh);
     ctx.fill();
 
+    // Check neighbors
+    const n = row > 0 && this.getBuildingIdAt(row - 1, col) === type;
+    const s = row < this.rows - 1 && this.getBuildingIdAt(row + 1, col) === type;
+    const w = col > 0 && this.getBuildingIdAt(row, col - 1) === type;
+    const e = col < this.cols - 1 && this.getBuildingIdAt(row, col + 1) === type;
+
     // Draw connectors
     if (n) this.drawConnector(ctx, x, y, hw, hh, 'n', color);
     if (s) this.drawConnector(ctx, x, y, hw, hh, 's', color);
     if (w) this.drawConnector(ctx, x, y, hw, hh, 'w', color);
     if (e) this.drawConnector(ctx, x, y, hw, hh, 'e', color);
+  }
+
+  getBuildingIdAt(row, col) {
+    const data = this.data[row][col];
+    if (!data) return null;
+    return getBuildingById(data)?.type || null; // Connect by type
   }
 
   drawConnector(ctx, x, y, hw, hh, dir, color) {
@@ -300,15 +317,14 @@ export class IsometricGrid {
       }
     }
 
-    // Windows / Night Lights
-    if (isNight) {
-      ctx.fillStyle = '#fbbf24';
-      const windowRows = Math.floor(h / (12 * zoom));
-      for(let i=1; i<windowRows; i++) {
-        const yOffset = -h + (i * 12 * zoom);
-        ctx.fillRect(-hw * 0.4, yOffset, 2 * zoom, 2 * zoom);
-        ctx.fillRect(hw * 0.4, yOffset, 2 * zoom, 2 * zoom);
-      }
+    // Windows
+    const windowRows = Math.floor(h / (12 * zoom));
+    for(let i=1; i<windowRows; i++) {
+      const yOffset = -h + (i * 12 * zoom);
+      // Daytime: Subtle glass blue, Night: Glowing amber
+      ctx.fillStyle = isNight ? '#fbbf24' : 'rgba(255, 255, 255, 0.3)';
+      ctx.fillRect(-hw * 0.4, yOffset, 2 * zoom, 2 * zoom);
+      ctx.fillRect(hw * 0.4, yOffset, 2 * zoom, 2 * zoom);
     }
 
     // CUSTOM ASSET DETAILS
