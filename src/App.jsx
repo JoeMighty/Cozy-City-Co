@@ -111,13 +111,17 @@ function App() {
       {/* UI Overlay */}
       <div className="ui-header">
         <div className="city-info">
-          <input 
-            type="text" 
-            className="city-name-input" 
-            value={cityName} 
-            onChange={(e) => setCityName(e.target.value)}
-            spellCheck="false"
-          />
+          <div className="city-name-wrapper">
+            <input 
+              type="text" 
+              className="city-name-input" 
+              value={cityName} 
+              onChange={(e) => setCityName(e.target.value)}
+              spellCheck="false"
+              style={{ width: `${Math.max(cityName.length * 16, 150)}px` }}
+            />
+            <span className="city-suffix">Co.</span>
+          </div>
           <div className="header-credits">
             Created by <a href="https://github.com/JoeMighty" target="_blank" rel="noreferrer">JoeMighty</a>
           </div>
@@ -168,7 +172,7 @@ function App() {
         <button onClick={() => setZoom(z => Math.max(z - 0.1, 0.5))}><Minus size={20} /></button>
       </div>
 
-      <GuideOverlay />
+      <GuideOverlay cityName={cityName} setCityName={setCityName} />
     </div>
   )
 }

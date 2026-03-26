@@ -75,7 +75,9 @@ export class IsometricGrid {
         } else if (currentType === 'park') {
           ctx.fillStyle = isNight ? '#064e3b' : currentData.color;
         } else {
-          ctx.fillStyle = isHovered ? 'rgba(255, 255, 255, 0.1)' : (isNight ? 'rgba(15, 23, 42, 0.8)' : 'rgba(30, 41, 59, 0.5)');
+          ctx.fillStyle = isHovered 
+            ? (isNight ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)') 
+            : (isNight ? 'rgba(15, 23, 42, 0.8)' : 'rgba(255, 255, 255, 0.8)');
         }
         
         if (ghost) ctx.globalAlpha = 0.5;

@@ -23,7 +23,7 @@ const STEPS = [
   }
 ]
 
-export function GuideOverlay() {
+export function GuideOverlay({ cityName, setCityName }) {
   const [currentStep, setCurrentStep] = useState(0)
   const [isVisible, setIsVisible] = useState(true)
 
@@ -49,6 +49,19 @@ export function GuideOverlay() {
         <div className="guide-message">
           <h3>Namratha</h3>
           <p>{step.text}</p>
+          
+          {step.id === 'welcome' && (
+            <div className="guide-input-field">
+              <label>What shall we call this city?</label>
+              <input 
+                type="text" 
+                value={cityName} 
+                onChange={(e) => setCityName(e.target.value)}
+                autoFocus
+              />
+            </div>
+          )}
+          
           <button onClick={next}>{step.nextText}</button>
         </div>
       </div>

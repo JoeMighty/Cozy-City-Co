@@ -28,7 +28,7 @@ body {
   width: 100vw;
   height: 100vh;
   position: relative;
-  background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+  background: radial-gradient(circle at center, #f0f9ff 0%, #e0f2fe 100%);
   transition: background 1s ease;
 }
 
@@ -50,16 +50,52 @@ body {
   z-index: 10;
 }
 
-.ui-header h1 {
-  margin: 0;
+.city-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  pointer-events: auto;
+}
+
+.city-name-wrapper {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.city-name-input {
+  background: transparent;
+  border: none;
   font-size: 24px;
   font-weight: 800;
-  background: linear-gradient(to right, #60a5fa, #a78bfa);
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: #f8fafc;
+  outline: none;
+  padding: 0;
+  margin: 0;
   text-transform: uppercase;
   letter-spacing: 2px;
+  background: linear-gradient(to right, #3b82f6, #8b5cf6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  width: auto;
+}
+
+.city-suffix {
+  font-size: 24px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  background: linear-gradient(to right, #8b5cf6, #c084fc);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.header-credits {
+  font-size: 10px;
+  color: #64748b;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
 }
 
 .resource-bar {
@@ -298,4 +334,36 @@ body {
 .guide-message button:hover {
   background: #2563eb;
   transform: translateY(-1px);
+}
+
+.guide-input-field {
+  margin: 15px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: left;
+}
+
+.guide-input-field label {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: #64748b;
+  letter-spacing: 0.5px;
+}
+
+.guide-input-field input {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 10px 12px;
+  border-radius: 8px;
+  color: white;
+  font-size: 14px;
+  outline: none;
+  width: 100%;
+}
+
+.guide-input-field input:focus {
+  border-color: #3b82f6;
+  background: rgba(0, 0, 0, 0.4);
 }
