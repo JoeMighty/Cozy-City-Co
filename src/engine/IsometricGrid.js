@@ -267,13 +267,14 @@ export class IsometricGrid {
     const h = (data.height || 1.0) * hh * 2 * zoom;
     const seed = (ctx.currentDrawRow * 3 + ctx.currentDrawCol * 7) % 5;
     
-    // Character Emoji (Illustration) - Larger & Prominent
+    // Character Emoji (Illustration) - Animated "Breathing"
     if (data.emoji) {
+      const bounce = Math.sin(Date.now() * 0.003 + seed) * (3 * zoom);
       ctx.font = `${Math.floor(36 * zoom)}px serif`; 
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillStyle = 'white';
-      ctx.fillText(data.emoji, 0, -h - (24 * zoom));
+      ctx.fillText(data.emoji, 0, -h - (24 * zoom) + bounce);
     }
 
     // COLORS
