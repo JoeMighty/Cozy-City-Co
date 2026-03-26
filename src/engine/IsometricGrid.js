@@ -250,15 +250,13 @@ export class IsometricGrid {
     if (type === 'park') {
       ctx.fillStyle = isNight ? this.adjustColor(data.color, -40) : data.color;
       ctx.beginPath();
-      ctx.moveTo(-hw * 0.8, 0);
-      ctx.lineTo(0, hh * 0.8);
-      ctx.lineTo(hw * 0.8, 0);
-      ctx.lineTo(0, -hh * 0.8);
+      ctx.moveTo(-hw * 0.8, 0); ctx.lineTo(0, hh * 0.8); ctx.lineTo(hw * 0.8, 0); ctx.lineTo(0, -hh * 0.8);
       ctx.fill();
       
       if (data.emoji) {
+        const bounce = Math.sin(Date.now() * 0.004 + seed) * (6 * zoom);
         ctx.font = `${Math.floor(28 * zoom)}px serif`;
-        ctx.fillText(data.emoji, 0, -5 * zoom);
+        ctx.fillText(data.emoji, 0, -5 * zoom + bounce);
       }
       ctx.restore();
       return;
@@ -267,16 +265,6 @@ export class IsometricGrid {
     const h = (data.height || 1.0) * hh * 2 * zoom;
     const seed = (ctx.currentDrawRow * 3 + ctx.currentDrawCol * 7) % 5;
     
-    // Character Emoji (Illustration) - Animated "Breathing"
-    if (data.emoji) {
-      const bounce = Math.sin(Date.now() * 0.003 + seed) * (3 * zoom);
-      ctx.font = `${Math.floor(36 * zoom)}px serif`; 
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillStyle = 'white';
-      ctx.fillText(data.emoji, 0, -h - (24 * zoom) + bounce);
-    }
-
     // COLORS
     const baseColor = isNight ? this.adjustColor(data.color, -50) : data.color;
     const sideColor = this.adjustColor(baseColor, -15);
@@ -357,6 +345,16 @@ export class IsometricGrid {
       ctx.beginPath(); ctx.arc(0, -h - 4*zoom, 6*zoom, 0, Math.PI*2); ctx.fill();
       ctx.strokeStyle = '#334155'; ctx.lineWidth = 1; ctx.stroke();
       ctx.fillStyle = '#334155'; ctx.fillRect(-0.5*zoom, -h - 8*zoom, 1*zoom, 4*zoom); // Hands
+    }
+
+    // Character Emoji (Illustration) - Animated "Breathing" (Drawn last to be on top)
+    if (data.emoji) {
+      const bounce = Math.sin(Date.now() * 0.003 + seed) * (3 * zoom);
+      ctx.font = `${Math.floor(36 * zoom)}px serif`; 
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = 'white';
+      ctx.fillText(data.emoji, 0, -h - (24 * zoom) + bounce);
     }
 
     ctx.restore();
