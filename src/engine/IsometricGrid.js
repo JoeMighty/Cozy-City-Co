@@ -166,24 +166,45 @@ export class IsometricGrid {
     }
   }
 
-  drawConnectedFeature(ctx, row, col, x, y, hw, hh, type, isNight) {
-    const color = type === 'road' 
-      ? (isNight ? '#334155' : '#475569') 
-      : (isNight ? '#2563eb' : '#3b82f6');
+  drawConnectedFeature(ctx, row, col, x, y, hw, hh, type, isNight, zoom) {
+    const assetId = this.data[row][col];
+    const data = getBuildingById(assetId);
+    if (!data) return;
+
+    const baseColor = data.color || (type === 'road' ? '#475569' : '#3b82f6');
+    const color = isNight ? this.adjustColor(baseColor, -50) : baseColor;
     ctx.fillStyle = color;
 
     if (type === 'water') {
-      // Full tile fill for merging water bodies
       ctx.beginPath();
       ctx.moveTo(x, y);
       ctx.lineTo(x + hw, y + hh);
       ctx.lineTo(x, y + hh * 2);
       ctx.lineTo(x - hw, y + hh);
       ctx.fill();
-      return; // No connectors needed for water
+
+      // Animated Detail
+      const time = Date.now() * 0.002;
+      const seed = (row * 13 + col * 7) % 10;
+      ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+      ctx.lineWidth = 1 * zoom;
+
+      if (data.id === 'pond') {
+        ctx.fillStyle = '#22c55e';
+        const ox = Math.sin(time + seed) * 3 * zoom;
+        ctx.beginPath(); ctx.arc(x + ox, y + hh + ox, 3 * zoom, 0, Math.PI * 2); ctx.fill();
+      } else if (data.id === 'river') {
+        const flow = (time * 15 + seed * 10) % (hw * 0.8);
+        ctx.beginPath(); ctx.moveTo(x - hw*0.4 + flow, y + hh*0.8); ctx.lineTo(x - hw*0.1 + flow, y + hh*1.1); ctx.stroke();
+      } else if (data.id === 'lake') {
+        const wave = Math.sin(time + seed) * 2 * zoom;
+        ctx.beginPath(); ctx.arc(x, y + hh + wave, hw * 0.3, 0, Math.PI * 0.8); ctx.stroke();
+      }
+      return;
     }
 
-    // Road logic (remains narrow)
+    // Road logic
+    ctx.fillStyle = isNight ? '#334155' : '#475569';
     ctx.beginPath();
     ctx.moveTo(x, y + hh * 0.5);
     ctx.lineTo(x + hw * 0.5, y + hh);
@@ -191,13 +212,11 @@ export class IsometricGrid {
     ctx.lineTo(x - hw * 0.5, y + hh);
     ctx.fill();
 
-    // Check neighbors
     const n = row > 0 && this.getBuildingIdAt(row - 1, col) === type;
     const s = row < this.rows - 1 && this.getBuildingIdAt(row + 1, col) === type;
     const w = col > 0 && this.getBuildingIdAt(row, col - 1) === type;
     const e = col < this.cols - 1 && this.getBuildingIdAt(row, col + 1) === type;
 
-    // Draw connectors
     if (n) this.drawConnector(ctx, x, y, hw, hh, 'n', color);
     if (s) this.drawConnector(ctx, x, y, hw, hh, 's', color);
     if (w) this.drawConnector(ctx, x, y, hw, hh, 'w', color);

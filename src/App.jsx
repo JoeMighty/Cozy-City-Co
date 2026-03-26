@@ -85,6 +85,25 @@ function App() {
     return () => cancelAnimationFrame(animationFrame)
   }, [grid, zoom, offset, hoveredTile, isNight, activeTool])
 
+  const handlePlacement = (mouseX, mouseY) => {
+    const { row, col } = grid.getGridCoords(mouseX, mouseY, offset.x, offset.y, zoom)
+    if (row >= 0 && row < grid.rows && col >= 0 && col < grid.cols) {
+      // Check if tile is already the same to avoid redundant work
+      if (grid.data[row][col] === activeTool) return
+
+      const item = getBuildingById(activeTool)
+      const cost = item?.cost || 0
+      
+      if (stats.balance >= cost) {
+        grid.place(row, col, activeTool, mouseX, mouseY)
+        setStats(prev => ({ ...prev, balance: prev.balance - cost }))
+        setGrid(Object.assign(Object.create(Object.getPrototypeOf(grid)), grid))
+      } else {
+        grid.activity.addTextParticle(mouseX, mouseY, "Not enough money!", "#ef4444")
+      }
+    }
+  }
+
   const handleMouseDown = (e) => {
     const rect = canvasRef.current.getBoundingClientRect()
     const mouseX = e.clientX - rect.left
@@ -94,21 +113,7 @@ function App() {
       isDragging.current = true
       lastMousePos.current = { x: e.clientX, y: e.clientY }
     } else if (e.button === 0) {
-      // Place building
-      const { row, col } = grid.getGridCoords(mouseX, mouseY, offset.x, offset.y, zoom)
-      if (row >= 0 && row < grid.rows && col >= 0 && col < grid.cols) {
-        const item = getBuildingById(activeTool)
-        const cost = item?.cost || 0
-        
-        if (stats.balance >= cost) {
-          grid.place(row, col, activeTool, mouseX, mouseY)
-          setStats(prev => ({ ...prev, balance: prev.balance - cost }))
-          setGrid(Object.assign(Object.create(Object.getPrototypeOf(grid)), grid))
-        } else {
-          // Play a "no money" sound or effect?
-          grid.activity.addTextParticle(mouseX, mouseY, "Not enough money!", "#ef4444")
-        }
-      }
+      handlePlacement(mouseX, mouseY)
     }
   }
 
@@ -126,6 +131,10 @@ function App() {
       const { row, col } = grid.getGridCoords(mouseX, mouseY, offset.x, offset.y, zoom)
       if (row >= 0 && row < grid.rows && col >= 0 && col < grid.cols) {
         setHoveredTile({ row, col })
+        // Drag placement support (Left click held down)
+        if (e.buttons === 1 && !e.shiftKey) {
+          handlePlacement(mouseX, mouseY)
+        }
       } else {
         setHoveredTile(null)
       }
