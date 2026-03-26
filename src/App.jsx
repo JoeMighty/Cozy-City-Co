@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { Hammer, Pickaxe, Trees, Droplets, Map as MapIcon, Plus, Minus, Sun, Moon } from 'lucide-react'
 import { IsometricGrid } from './engine/IsometricGrid'
 import { GuideOverlay } from './components/GuideOverlay'
+import { SplashScreen } from './components/SplashScreen'
 import { BUILDING_CATEGORIES, getBuildingById } from './engine/BuildingRegistry'
 import './styles/index.css'
 
@@ -217,6 +218,8 @@ function App() {
         stats={stats}
         grid={grid}
       />
+
+      {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} />}
     </div>
   )
 }
