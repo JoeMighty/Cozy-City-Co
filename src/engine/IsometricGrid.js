@@ -28,14 +28,14 @@ export class IsometricGrid {
   // row = (y / halfHeight - x / halfWidth) / 2
   // col = (y / halfHeight + x / halfWidth) / 2
   getGridCoords(screenX, screenY, offsetX, offsetY, zoom) {
-    const halfWidth = (this.tileSize * 2 * zoom) / 2;
-    const halfHeight = (this.tileSize * zoom) / 2;
+    const hw = (this.tileSize * 2 * zoom) / 2;
+    const hh = (this.tileSize * zoom) / 2;
 
-    const relX = screenX - offsetX;
-    const relY = screenY - halfHeight; // Adjust for the top point of the first tile
+    const dx = (screenX - offsetX) / hw;
+    const dy = (screenY - offsetY) / hh;
 
-    const col = (relY / halfHeight + relX / halfWidth) / 2;
-    const row = (relY / halfHeight - relX / halfWidth) / 2;
+    const col = (dy + dx) / 2;
+    const row = (dy - dx) / 2;
 
     return { row: Math.floor(row), col: Math.floor(col) };
   }
