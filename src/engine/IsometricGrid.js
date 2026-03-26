@@ -247,6 +247,23 @@ export class IsometricGrid {
     ctx.ellipse(0, 0, hw * 0.8, hh * 0.5, 0, 0, Math.PI * 2);
     ctx.fill();
 
+    if (type === 'park') {
+      ctx.fillStyle = isNight ? this.adjustColor(data.color, -40) : data.color;
+      ctx.beginPath();
+      ctx.moveTo(-hw * 0.8, 0);
+      ctx.lineTo(0, hh * 0.8);
+      ctx.lineTo(hw * 0.8, 0);
+      ctx.lineTo(0, -hh * 0.8);
+      ctx.fill();
+      
+      if (data.emoji) {
+        ctx.font = `${Math.floor(28 * zoom)}px serif`;
+        ctx.fillText(data.emoji, 0, -5 * zoom);
+      }
+      ctx.restore();
+      return;
+    }
+
     const h = (data.height || 1.0) * hh * 2 * zoom;
     const seed = (ctx.currentDrawRow * 3 + ctx.currentDrawCol * 7) % 5;
     
