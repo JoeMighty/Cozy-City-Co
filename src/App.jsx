@@ -196,7 +196,10 @@ function App() {
         grid={grid}
       />
 
-      {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} />}
+      <SplashScreen onComplete={(balance) => {
+        setStats(prev => ({ ...prev, balance }));
+        setShowSplash(false);
+      }} />
     </div>
   )
 }

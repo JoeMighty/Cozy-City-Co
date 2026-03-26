@@ -4,11 +4,11 @@ export function SplashScreen({ onComplete }) {
   const [isClosing, setIsClosing] = useState(false)
   const [isVisible, setIsVisible] = useState(true)
 
-  const handleStart = () => {
+  const handleStart = (initialBalance) => {
     setIsClosing(true)
     setTimeout(() => {
       setIsVisible(false)
-      onComplete()
+      onComplete(initialBalance)
     }, 800)
   }
 
@@ -29,10 +29,23 @@ export function SplashScreen({ onComplete }) {
           <div className="feature-pill">👩‍🏫 Interactive Guide</div>
         </div>
 
-        <button className="start-button" onClick={handleStart}>
-          <span className="button-text">Start Building</span>
-          <div className="button-glow"></div>
-        </button>
+        <div className="mode-selection">
+          <button className="mode-button standard" onClick={() => handleStart(100000)}>
+            <div className="mode-icon">💰</div>
+            <div className="mode-info">
+              <h3>Standard</h3>
+              <span>Start with $100,000</span>
+            </div>
+          </button>
+          
+          <button className="mode-button sandbox" onClick={() => handleStart(9999999)}>
+            <div className="mode-icon">♾️</div>
+            <div className="mode-info">
+              <h3>Sandbox</h3>
+              <span>Infinite Possibilities</span>
+            </div>
+          </button>
+        </div>
 
         <div className="splash-footer">
           Created with <span className="heart">❤</span> by JoeMighty
