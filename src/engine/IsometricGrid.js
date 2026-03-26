@@ -224,98 +224,109 @@ export class IsometricGrid {
     ctx.save();
     ctx.translate(x, y + hh);
     
-    const seed = (ctx.currentDrawRow * 13 + ctx.currentDrawCol * 7) % 3;
-
-    // SHADOW
+    // Shadow
     ctx.fillStyle = isNight ? 'rgba(0,0,0,0.4)' : 'rgba(0,0,0,0.1)';
     ctx.beginPath();
-    ctx.ellipse(0, hh, hw * 0.6, hh * 0.4, 0, 0, Math.PI * 2);
+    ctx.ellipse(0, 0, hw * 0.8, hh * 0.5, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    if (type === 'building') {
-      const dayColor = data.color;
-      const nightColors = ['#4338ca', '#3730a3', '#312e81'];
-      ctx.fillStyle = isNight ? nightColors[seed] : dayColor;
-      
-      const heightMult = data.height || (0.5 + seed * 0.3);
-      
-      // Cube
+    const h = (data.height || 1.0) * hh * 2 * zoom;
+    const seed = (ctx.currentDrawRow * 3 + ctx.currentDrawCol * 7) % 5;
+    
+    // Character Emoji (Illustration) - Larger & Prominent
+    if (data.emoji) {
+      ctx.font = `${Math.floor(36 * zoom)}px serif`; 
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = 'white';
+      ctx.fillText(data.emoji, 0, -h - (24 * zoom));
+    }
+
+    // COLORS
+    const baseColor = isNight ? this.adjustColor(data.color, -50) : data.color;
+    const sideColor = this.adjustColor(baseColor, -15);
+    const darkSideColor = this.adjustColor(baseColor, -30);
+
+    // FRONT SIDE (Left)
+    ctx.fillStyle = sideColor;
+    ctx.beginPath();
+    ctx.moveTo(-hw, 0);
+    ctx.lineTo(0, hh);
+    ctx.lineTo(0, hh - h);
+    ctx.lineTo(-hw, -h);
+    ctx.fill();
+
+    // RIGHT SIDE
+    ctx.fillStyle = darkSideColor;
+    ctx.beginPath();
+    ctx.moveTo(hw, 0);
+    ctx.lineTo(0, hh);
+    ctx.lineTo(0, hh - h);
+    ctx.lineTo(hw, -h);
+    ctx.fill();
+
+    // ROOF AND ORNAMENTS
+    if (data.id === 'house' || data.id === 'school' || data.id === 'villa') {
+      // Gabled Roof
+      const roofColor = data.id === 'school' ? '#b91c1c' : '#78350f';
+      ctx.fillStyle = isNight ? this.adjustColor(roofColor, -40) : roofColor;
       ctx.beginPath();
-      ctx.moveTo(0, -hh * heightMult);
-      ctx.lineTo(hw * 0.5, -hh * (heightMult * 0.5));
-      ctx.lineTo(0, 0);
-      ctx.lineTo(-hw * 0.5, -hh * (heightMult * 0.5));
+      ctx.moveTo(-hw, -h);
+      ctx.lineTo(0, -h - (hh * 0.8)); // Peak
+      ctx.lineTo(hw, -h);
+      ctx.lineTo(0, -h + hh);
       ctx.fill();
-      
-      // Side shading
-      ctx.fillStyle = isNight ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.1)';
+    } else {
+      // Flat Modern Roof
+      ctx.fillStyle = baseColor;
       ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.lineTo(hw * 0.5, -hh * (heightMult * 0.5));
-      ctx.lineTo(hw * 0.5, hh * 0.5);
-      ctx.lineTo(0, hh);
+      ctx.moveTo(0, -h + hh);
+      ctx.lineTo(hw, -h);
+      ctx.lineTo(0, -h - hh);
+      ctx.lineTo(-hw, -h);
       ctx.fill();
 
-      // Accessories
-      if (data.accessory === 'cross') {
-        ctx.fillStyle = '#ef4444';
-        ctx.fillRect(-2, -hh * heightMult - 6, 4, 12);
-        ctx.fillRect(-6, -hh * heightMult - 2, 12, 4);
-      } else if (data.accessory === 'neon' && isNight) {
-        ctx.strokeStyle = '#f472b6';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(-hw * 0.2, -hh * heightMult * 0.8, hw * 0.4, hh * 0.4);
-      }
-
-      // Night Lights
-      if (isNight) {
-        ctx.fillStyle = '#fbbf24';
-        const lightLevels = Math.floor(heightMult * 2);
-        for (let i = 0; i < lightLevels; i++) {
+      // Rooftop Equipment (AC Units/Antennas)
+      if (type === 'building' && h > 40 * zoom) {
+        ctx.fillStyle = '#64748b';
+        ctx.fillRect(-hw * 0.2, -h - hh * 0.4, hw * 0.3, hh * 0.4);
+        if (data.id === 'skyscraper') {
+          ctx.strokeStyle = '#94a3b8';
           ctx.beginPath();
-          ctx.arc(seed === 0 ? -2 : 2, -hh * 0.2 - (i * 10), 1.5, 0, Math.PI * 2);
-          ctx.fill();
+          ctx.moveTo(0, -h - hh);
+          ctx.lineTo(0, -h - hh * 2); // Antenna
+          ctx.stroke();
         }
       }
+    }
 
-      // CHARACTER: Draw Emoji
-      if (data.emoji) {
-        ctx.font = `${Math.floor(14 * (zoom + 0.5))}px serif`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.shadowBlur = 4;
-        ctx.shadowColor = 'rgba(0,0,0,0.5)';
-        ctx.fillText(data.emoji, 0, -hh * heightMult - 15);
-        ctx.shadowBlur = 0;
-      }
-    } else if (type === 'park') {
-      ctx.fillStyle = isNight ? '#064e3b' : data.color;
-      
-      const heightMult = 0.5;
-
-      if (data.accessory === 'fountain') {
-        ctx.fillStyle = '#60a5fa';
-        ctx.beginPath();
-        ctx.arc(0, 0, hw * 0.2, 0, Math.PI * 2);
-        ctx.fill();
-      } else if (seed === 0) {
-        ctx.beginPath();
-        ctx.arc(0, -hh * 0.3, hw * 0.3, 0, Math.PI * 2);
-        ctx.fill();
-      } else {
-        ctx.beginPath();
-        ctx.moveTo(-hw * 0.3, 0);
-        ctx.lineTo(0, -hh * 0.6);
-        ctx.lineTo(hw * 0.3, 0);
-        ctx.fill();
-      }
-
-      if (data.emoji) {
-        ctx.font = `${Math.floor(12 * (zoom + 0.5))}px serif`;
-        ctx.textAlign = 'center';
-        ctx.fillText(data.emoji, 0, -hh * heightMult - 10);
+    // Windows / Night Lights
+    if (isNight) {
+      ctx.fillStyle = '#fbbf24';
+      const windowRows = Math.floor(h / (12 * zoom));
+      for(let i=1; i<windowRows; i++) {
+        const yOffset = -h + (i * 12 * zoom);
+        ctx.fillRect(-hw * 0.4, yOffset, 2 * zoom, 2 * zoom);
+        ctx.fillRect(hw * 0.4, yOffset, 2 * zoom, 2 * zoom);
       }
     }
+
+    // CUSTOM ASSET DETAILS
+    if (data.id === 'hospital') {
+      ctx.fillStyle = '#ef4444';
+      ctx.fillRect(-2*zoom, -h - 12*zoom, 4*zoom, 12*zoom);
+      ctx.fillRect(-6*zoom, -h - 8*zoom, 12*zoom, 4*zoom);
+    }
+    
+    if (data.id === 'school') {
+      ctx.fillStyle = 'white';
+      ctx.beginPath(); ctx.arc(0, -h - 4*zoom, 6*zoom, 0, Math.PI*2); ctx.fill();
+      ctx.strokeStyle = '#334155'; ctx.lineWidth = 1; ctx.stroke();
+      ctx.fillStyle = '#334155'; ctx.fillRect(-0.5*zoom, -h - 8*zoom, 1*zoom, 4*zoom); // Hands
+    }
+
+    ctx.restore();
+  }
     ctx.restore();
   }
 
