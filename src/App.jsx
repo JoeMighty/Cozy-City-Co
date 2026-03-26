@@ -128,6 +128,7 @@ function App() {
         </div>
         
         <div className="resource-bar">
+          <NewsTicker cityName={cityName} />
           <button className="theme-toggle" onClick={() => setIsNight(!isNight)}>
             {isNight ? '🌙 Night' : '☀️ Day'}
           </button>
@@ -150,7 +151,9 @@ function App() {
                     onClick={() => setActiveTool(item.id)}
                     title={item.name}
                   >
-                    <div className="item-preview" style={{ background: item.color }}></div>
+                    <div className="item-preview" style={{ backgroundColor: item.color }}>
+                      {item.emoji}
+                    </div>
                     <span>{item.name}</span>
                   </button>
                 ))}

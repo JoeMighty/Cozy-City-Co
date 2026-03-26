@@ -28,7 +28,7 @@ body {
   width: 100vw;
   height: 100vh;
   position: relative;
-  background: radial-gradient(circle at center, #f0f9ff 0%, #e0f2fe 100%);
+  background: radial-gradient(circle at center, #e2e8f0 0%, #94a3b8 100%);
   transition: background 1s ease;
 }
 
