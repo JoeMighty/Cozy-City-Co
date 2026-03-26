@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import namrathaImg from '../assets/namratha.png'
 
 const STEPS = [
   {
@@ -43,7 +44,7 @@ export function GuideOverlay({ cityName, setCityName }) {
     <div className="guide-overlay">
       <div className="guide-content">
         <div className="guide-avatar">
-          <img src="/assets/namratha.png" alt="Namratha" />
+          <img src={namrathaImg} alt="Namratha" />
           <div className="avatar-ring"></div>
         </div>
         <div className="guide-message">
